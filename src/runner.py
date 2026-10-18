@@ -57,6 +57,165 @@ LANGUAGE = {
 }
 DEFAULT = ("English","Hello {name} team, I came across your public business profile while researching companies in {city}, {country}. There may be an opportunity to improve {service} and help {benefit}. Would you be open to a few tailored ideas? If this is not relevant, please let me know and I will not follow up.")
 
+PORTFOLIO_CATALOG = {
+    "b2b_leads": {
+        "title": "Pencari calon pelanggan untuk jasa bisnis",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/jasa-b2b-lead-engine",
+        "service_id": "sistem pencarian calon klien B2B, penilaian kecocokan prospek, dan pengaturan follow-up",
+        "benefit_id": "tim sales dapat memprioritaskan prospek yang lebih sesuai dan mengurangi follow-up yang terlewat",
+        "service_en": "a B2B lead workflow that finds potential clients, scores fit, and organizes follow-ups",
+        "benefit_en": "help sales prioritize relevant prospects and keep follow-ups organized",
+    },
+    "customer_chat": {
+        "title": "Asisten chat toko skincare",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/toko-skincare-chat-ai",
+        "service_id": "asisten AI WhatsApp untuk menjawab pertanyaan umum produk dan pemesanan, mencatat pesanan di Google Sheets, serta meneruskan chat rumit ke staf",
+        "benefit_id": "pertanyaan rutin lebih konsisten tertangani dan pesanan lebih rapi tanpa semua chat harus dijawab manual",
+        "service_en": "an AI WhatsApp assistant that answers common product and order questions, logs orders in Google Sheets, and hands complex chats to staff",
+        "benefit_en": "handle routine questions more consistently and keep orders organized without manually answering every message",
+    },
+    "email_campaign": {
+        "title": "Daftar calon pembeli + email promosi",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/daftar-email-campaign",
+        "service_id": "pengelolaan daftar prospek yang rapi dan draf email promosi yang dipersonalisasi dengan opsi berhenti menerima pesan",
+        "benefit_id": "tim dapat mengelompokkan calon pembeli dan menyiapkan tindak lanjut yang lebih relevan",
+        "service_en": "organized prospect lists and personalized email campaign drafts with an opt-out option",
+        "benefit_en": "help the team segment prospects and prepare more relevant follow-ups",
+    },
+    "brand_content": {
+        "title": "Sistem konten brand fashion",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/brand-fashion-content",
+        "service_id": "sistem konten AI untuk menyusun kalender konten, caption, dan skrip sesuai gaya brand",
+        "benefit_id": "tim memiliki ide konten terencana dan lebih mudah menjaga konsistensi komunikasi brand",
+        "service_en": "an AI content workflow that prepares a content calendar, captions, and scripts in the brand's style",
+        "benefit_en": "make content planning more consistent and reduce the time spent starting each post from scratch",
+    },
+    "instagram_dm": {
+        "title": "Balas komentar & DM Instagram",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/dm-instagram-otomatis",
+        "service_id": "otomatisasi jawaban untuk pertanyaan umum dari komentar dan DM Instagram, dengan pertanyaan khusus tetap diteruskan ke manusia",
+        "benefit_id": "mengurangi pesan yang terlewat sambil menjaga pertanyaan yang membutuhkan penilaian manusia tetap ditangani staf",
+        "service_en": "Instagram comment and DM automation for common questions, with unusual or sensitive queries handed to a person",
+        "benefit_en": "help reduce missed messages while keeping nuanced questions with the human team",
+    },
+    "reservations": {
+        "title": "Reservasi meja lewat chat",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/reservasi-restoran",
+        "service_id": "alur reservasi lewat WhatsApp yang mencatat jadwal secara otomatis dan menyiapkan pengingat sebelum waktu reservasi",
+        "benefit_id": "permintaan reservasi lebih teratur dan staf tidak perlu menyalin setiap jadwal secara manual",
+        "service_en": "a WhatsApp reservation workflow that records bookings and prepares reminders before the appointment",
+        "benefit_en": "keep booking details organized and reduce manual copying of reservations",
+    },
+    "store_faq": {
+        "title": "Bot jawab pertanyaan & cek pesanan",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/faq-toko-online",
+        "service_id": "bot AI untuk menjawab FAQ dan pertanyaan status pesanan, lalu meneruskan kasus yang rumit ke admin",
+        "benefit_id": "pelanggan dapat jawaban untuk pertanyaan berulang dan admin dapat fokus pada kasus yang memerlukan bantuan langsung",
+        "service_en": "an AI FAQ and order-status bot that answers recurring questions and hands complex cases to staff",
+        "benefit_en": "answer recurring customer questions more consistently while leaving complex cases with the admin team",
+    },
+    "sales_reporting": {
+        "title": "Rekap penjualan harian UMKM",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/rekap-penjualan-umkm",
+        "service_id": "otomatisasi pengumpulan data penjualan ke Google Sheets dan pengiriman ringkasan harian kepada pemilik",
+        "benefit_id": "mengurangi rekap manual dan membuat ringkasan penjualan lebih mudah ditinjau",
+        "service_en": "automated sales-data collection into Google Sheets and a daily summary for the business owner",
+        "benefit_en": "reduce manual sales reconciliation and make sales summaries easier to review",
+    },
+    "competitor_research": {
+        "title": "Pantau pesaing otomatis",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/riset-kompetitor",
+        "service_id": "pemantauan informasi publik pesaing seperti perubahan harga dan promosi, lalu merangkumnya secara berkala",
+        "benefit_id": "tim dapat meninjau perubahan pasar tanpa mengumpulkan semua informasi pesaing secara manual",
+        "service_en": "a public-source competitor monitoring workflow that summarizes visible changes in prices and promotions",
+        "benefit_en": "review market changes without manually collecting every competitor update",
+    },
+    "payment_reminders": {
+        "title": "Pengingat tagihan yang sopan",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/pengingat-tagihan",
+        "service_id": "pengingat pembayaran terjadwal dengan bahasa yang sopan dan pencatatan status di Google Sheets",
+        "benefit_id": "tindak lanjut tagihan lebih konsisten tanpa harus menyusun setiap pengingat dari awal",
+        "service_en": "scheduled, polite payment reminders with status tracking in Google Sheets",
+        "benefit_en": "keep payment follow-ups consistent without drafting every reminder manually",
+    },
+    "daily_reporting": {
+        "title": "Laporan harian ke Telegram",
+        "url": "https://agencyai.reybyoo.workers.dev/portfolio/laporan-harian-telegram",
+        "service_id": "otomatisasi pengingat janji dan pengiriman ringkasan operasional harian kepada staf terkait",
+        "benefit_id": "informasi rutin lebih mudah diterima tepat waktu dan laporan tidak perlu dikompilasi manual setiap hari",
+        "service_en": "automated appointment reminders and daily operational summaries sent to the appropriate staff",
+        "benefit_en": "deliver routine information on time and reduce manual daily reporting",
+    },
+}
+EXAMPLE_LINK_LABEL = {
+    "Indonesian": "Contoh ilustrasi solusi yang relevan",
+    "Malay": "Contoh ilustrasi penyelesaian yang berkaitan",
+    "English": "Related illustrative workflow",
+    "Japanese": "関連する仕組みのイメージ例",
+    "Korean": "관련 자동화 예시",
+    "Chinese": "相关工作流程示例",
+    "Thai": "ตัวอย่างเวิร์กโฟลว์ที่เกี่ยวข้อง",
+    "Vietnamese": "Ví dụ quy trình liên quan",
+    "German": "Passendes illustratives Workflow-Beispiel",
+    "French": "Exemple illustratif de workflow pertinent",
+    "Spanish": "Ejemplo ilustrativo de flujo relevante",
+    "Portuguese": "Exemplo ilustrativo de fluxo relacionado",
+    "Italian": "Esempio illustrativo di flusso pertinente",
+    "Dutch": "Relevant illustratief workflowvoorbeeld",
+    "Arabic": "مثال توضيحي لسير عمل ذي صلة",
+    "Turkish": "İlgili iş akışı örneği",
+}
+LOCALIZED_FALLBACK = {
+    "Indonesian": ("sistem AI untuk membantu alur kerja seperti contoh yang relevan di portofolio kami", "mengurangi pekerjaan berulang dan merapikan tindak lanjut pelanggan atau penjualan"),
+    "Malay": ("aliran kerja AI seperti contoh yang berkaitan dalam portfolio kami", "mengurangkan kerja berulang dan menyusun susulan pelanggan atau jualan"),
+    "English": ("an AI workflow like the relevant example in our portfolio", "reduce repetitive work and organize customer or sales follow-ups"),
+    "Japanese": ("ポートフォリオの関連例のようなAI業務自動化", "定型作業を減らし、顧客対応や営業フォローを整理する"),
+    "Korean": ("포트폴리오의 관련 예시와 같은 AI 업무 자동화", "반복 업무를 줄이고 고객 문의와 영업 후속 관리를 체계화하는"),
+    "Chinese": ("与我们作品集相关示例类似的 AI 工作流程自动化", "减少重复工作并更有条理地处理客户咨询或销售跟进"),
+    "Thai": ("ระบบงานอัตโนมัติด้วย AI ตามตัวอย่างที่เกี่ยวข้องในผลงานของเรา", "ลดงานซ้ำและจัดระเบียบการติดตามลูกค้าหรือการขาย"),
+    "Vietnamese": ("quy trình tự động hóa bằng AI tương tự ví dụ liên quan trong hồ sơ năng lực của chúng tôi", "giảm việc lặp lại và sắp xếp việc chăm sóc khách hàng hoặc theo dõi bán hàng"),
+    "German": ("einen KI-Workflow wie das passende Beispiel in unserem Portfolio", "wiederkehrende Aufgaben reduzieren und Kundenanfragen oder Vertriebsnachfassaktionen strukturieren"),
+    "French": ("un workflow d'IA comme l'exemple pertinent de notre portfolio", "réduire les tâches répétitives et mieux organiser les demandes clients ou les relances commerciales"),
+    "Spanish": ("un flujo de trabajo con IA como el ejemplo relacionado de nuestro portafolio", "reducir tareas repetitivas y organizar mejor las consultas de clientes o el seguimiento comercial"),
+    "Portuguese": ("um fluxo de trabalho com IA como o exemplo relacionado do nosso portfólio", "reduzir tarefas repetitivas e organizar melhor as consultas dos clientes ou o acompanhamento comercial"),
+    "Italian": ("un flusso di lavoro con IA come l'esempio pertinente del nostro portfolio", "ridurre le attività ripetitive e organizzare meglio le richieste dei clienti o i follow-up commerciali"),
+    "Dutch": ("een AI-workflow zoals het relevante voorbeeld in ons portfolio", "herhaalwerk verminderen en klantvragen of verkoopopvolging beter organiseren"),
+    "Arabic": ("سير عمل بالذكاء الاصطناعي مثل المثال ذي الصلة في معرض أعمالنا", "تقليل المهام المتكررة وتنظيم استفسارات العملاء أو متابعة المبيعات"),
+    "Turkish": ("portföyümüzdeki ilgili örneğe benzer bir yapay zekâ iş akışı", "tekrarlayan işleri azaltmak ve müşteri taleplerini veya satış takibini düzenlemek"),
+}
+def choose_portfolio_offer(p):
+    """Select the closest real example page on the agency site based on sector and public evidence."""
+    industry = s(p.get("industry", ""), 200).lower()
+    blob = " ".join(s(p.get(k, ""), 800) for k in ("company_name", "industry", "evidence", "source_name")).lower()
+    socials = any(p.get(k) for k in ("instagram", "facebook", "tiktok"))
+    def has(*words):
+        return any(word in blob or word in industry for word in words)
+    if has("fashion", "clothing", "apparel", "garment", "skincare", "cosmetic", "beauty brand", "boutique", "jewelry", "makeup", "fashion store"):
+        key = "brand_content"
+    elif has("freelancer", "freelance", "invoice", "payment reminder", "billing", "accounting", "bookkeeping"):
+        key = "payment_reminders"
+    elif has("clinic", "dental", "dentist", "medical", "hospital", "physiotherapy", "healthcare"):
+        key = "daily_reporting"
+    elif has("hotel", "travel agency", "tour operator", "wedding", "event organizer", "salon", "spa", "fitness studio", "gym"):
+        key = "reservations"
+    elif has("restaurant", "cafe", "coffee shop", "coffee", "catering", "bar", "food and beverage", "food service"):
+        key = "instagram_dm" if socials else "reservations"
+    elif has("e-commerce", "ecommerce", "online store", "online shop", "retail shop", "retail store", "electronics store", "furniture store", "car dealership", "shop", "store", "retail", "distributor", "wholesale"):
+        key = "store_faq" if has("online", "e-commerce", "ecommerce", "shop", "store") else "sales_reporting"
+    elif has("real estate", "property", "property agency", "marketing agency", "consulting firm", "law firm", "software company", "it services", "logistics", "manufacturer", "manufacturing", "construction", "accounting firm", "b2b", "business service"):
+        key = "email_campaign" if has("real estate", "property") else "b2b_leads"
+    elif has("startup", "brand", "marketing", "content", "photography", "design studio"):
+        key = "competitor_research" if has("startup", "competitor", "market research") else "brand_content"
+    elif socials:
+        key = "instagram_dm"
+    else:
+        key = "b2b_leads"
+    offer = PORTFOLIO_CATALOG[key]
+    p["portfolio_service_match"] = offer["title"]
+    p["portfolio_example_title"] = offer["title"]
+    p["relevant_portfolio_url"] = offer["url"]
+    return offer
+
 AGENCY_PORTFOLIO_URL = "https://agencyai.reybyoo.workers.dev/"
 AGENCY_NAME = "AGA-Ai Growth Agency"
 
