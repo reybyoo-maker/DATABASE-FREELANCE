@@ -37,7 +37,9 @@ const HEADERS = [
   ["outreach_whatsapp", "Copy-Paste WhatsApp Message"],
   ["outreach_status", "Outreach Status"],
   ["data_quality", "Data Quality"],
-  ["added_at_jakarta", "Added At (Jakarta)"]
+  ["added_at_jakarta", "Added At (Jakarta)"],
+  ["portfolio_service_match", "Portfolio Service Match"],
+  ["relevant_portfolio_url", "Relevant Portfolio Example URL"]
 ];
 
 function doPost(e) {
@@ -119,9 +121,21 @@ function ensureSheets_(ss) {
     prospects.getRange(1, 1, 1, desired.length).setFontWeight("bold");
     prospects.autoResizeColumns(1, Math.min(desired.length, 12));
   } else {
-    // Refuse to append into a sheet with a conflicting schema.
-    const existing = prospects.getRange(1, 1, 1, Math.min(prospects.getLastColumn(), desired.length)).getDisplayValues()[0];
-    if (existing[0] !== desired[0]) throw new Error("Prospects tab exists with a different header schema. Rename it or use a new blank Sheet.");
+    // Preserve existing rows and validate every existing column before adding new trailing columns.
+    const existingCount = prospects.getLastColumn();
+    const compareCount = Math.min(existingCount, desired.length);
+    const existing = prospects.getRange(1, 1, 1, compareCount).getDisplayValues()[0];
+    for (let i = 0; i < compareCount; i++) {
+      if (existing[i] !== desired[i]) {
+        throw new Error("Prospects tab schema differs at column " + (i + 1) + ". Rename the tab or reconcile its headers before continuing.");
+      }
+    }
+    if (existingCount < desired.length) {
+      const newHeaders = desired.slice(existingCount);
+      prospects.getRange(1, existingCount + 1, 1, newHeaders.length).setValues([newHeaders]);
+      prospects.getRange(1, existingCount + 1, 1, newHeaders.length).setFontWeight("bold");
+      prospects.autoResizeColumns(existingCount + 1, newHeaders.length);
+    }
   }
   let runs = ss.getSheetByName(RUNS_TAB);
   if (!runs) runs = ss.insertSheet(RUNS_TAB);
