@@ -256,13 +256,12 @@ PORTFOLIO_LABEL = {
     "Turkish": "Portföy",
 }
 
-def add_agency_context(message, language):
-    """Ensure every copy-ready outreach message has the staff placeholder and agency portfolio."""
+def add_agency_context(message, language, example_url="", example_title=""):
+    """Ensure outreach introduces the marketing employee and links the matching illustrative portfolio example."""
     message = s(message, 3000).strip()
     intro = OUTREACH_INTRO.get(language, OUTREACH_INTRO["English"])
-    # If the model did not use the required placeholder AND agency name, add the official intro.
+    # Keep the recipient greeting first, then introduce the employee and agency.
     if "[nama kamu]" not in message.lower() or AGENCY_NAME.lower() not in message.lower():
-        # Keep the company's greeting first, then introduce the staff member naturally.
         greeting_end = re.search(r"[.!?。！？؟]\s*", message[:220])
         if greeting_end:
             message = message[:greeting_end.end()].rstrip() + " " + intro + (" " + message[greeting_end.end():].lstrip() if message[greeting_end.end():].strip() else "")
@@ -271,6 +270,9 @@ def add_agency_context(message, language):
     if AGENCY_PORTFOLIO_URL not in message:
         label = PORTFOLIO_LABEL.get(language, "Portfolio")
         message = message.rstrip() + f"\n\n{label}: {AGENCY_PORTFOLIO_URL}"
+    if example_url and example_url not in message and example_url != AGENCY_PORTFOLIO_URL:
+        label = EXAMPLE_LINK_LABEL.get(language, EXAMPLE_LINK_LABEL["English"])
+        message = message.rstrip() + f"\n\n{label} — {example_title}: {example_url}"
     return message
 
 OSM = [
@@ -414,20 +416,31 @@ def gemini(prompt,key,model):
     if a<0 or b<=a: raise RuntimeError("Gemini response was not JSON")
     return json.loads(text[a:b+1])
 def template_fallback(p,err):
+    offer=choose_portfolio_offer(p)
     lang,tmpl=LANGUAGE.get(p["country"],DEFAULT)
-    service="social media planning, lead tracking, and customer inquiry automation"
-    benefit="save response time and follow up with interested customers more consistently"
+    if lang=="Indonesian":
+        service,benefit=offer["service_id"],offer["benefit_id"]
+        recommended=offer["service_id"]
+    elif lang=="English":
+        service,benefit=offer["service_en"],offer["benefit_en"]
+        recommended=offer["service_en"]
+    else:
+        service,benefit=LOCALIZED_FALLBACK.get(lang,LOCALIZED_FALLBACK["English"])
+        recommended=offer["service_en"]
     draft=tmpl.format(name=p["company_name"],city=p["city"],country=p["country"],service=service,benefit=benefit)
     # Contact-channel availability alone is not enough to assign the top tier.
     score=38+bool(p.get("whatsapp_url"))*8+bool(p.get("public_email"))*6+bool(p.get("website"))*6+sum(bool(p.get(k)) for k in ("instagram","facebook","linkedin","tiktok"))*3
     score=min(74,score)
-    p.update(outreach_language=lang,need_audit="AI analysis was unavailable, so a company-specific need has not been verified. Check the source profile and confirm a concrete opportunity before contacting. Fallback reason: "+s(err,120),recommended_service="Candidate services to validate: social media planning, customer inquiry automation, and lead tracking.",prospect_score=score,prospect_grade="MEDIUM" if score>=45 else "LOW",grade_reason="Fallback rating based on public contact availability only. Not evidence of buying intent; manual review required.",outreach_dm=draft,outreach_whatsapp=draft,outreach_email_subject=f"Ideas for {p['company_name']}",outreach_email_body=draft,data_quality=p.get("data_quality","")+"; AI unavailable; fallback analysis")
+    p.update(outreach_language=lang,need_audit="AI analysis was unavailable, so a company-specific need has not been verified. The suggested offer was matched from the agency's public portfolio based on the prospect's sector; verify the fit before contacting. Fallback reason: "+s(err,120),recommended_service=recommended,prospect_score=score,prospect_grade="MEDIUM" if score>=45 else "LOW",grade_reason="Fallback rating based on public contact availability only. Not evidence of buying intent; manual review required.",outreach_dm=draft,outreach_whatsapp=draft,outreach_email_subject=f"Ideas for {p['company_name']}",outreach_email_body=draft,data_quality=p.get("data_quality","")+"; AI unavailable; fallback analysis")
     for key in ("outreach_dm","outreach_whatsapp","outreach_email_body"):
-        p[key]=add_agency_context(p.get(key,""),p.get("outreach_language",lang))
+        p[key]=add_agency_context(p.get(key,""),p.get("outreach_language",lang),p.get("relevant_portfolio_url",""),p.get("portfolio_example_title",""))
 def analyze(p,key,model):
     lang,_=LANGUAGE.get(p["country"],DEFAULT)
+    offer=choose_portfolio_offer(p)
     facts={k:p.get(k,"") for k in ("company_name","country","city","industry","website","whatsapp_url","public_email","public_phone","instagram","facebook","linkedin","tiktok","other_social","source_url","source_name","evidence")}
-    prompt=f"""You are a cautious B2B prospect researcher for an AI automation/digital services agency. Analyze ONLY supplied public evidence; never invent business needs, budget, buying intent, results, or facts. If evidence is thin, say that. JSON only with: need_audit (2-4 sentences, distinguish observations/hypotheses), recommended_service (1-3 specific and plausible services, not a confirmed need), prospect_score (integer 0-100; evidence specificity 35%, fit 25%, public contact usability 25%, data quality 15%), prospect_grade (RECOMMENDED for 75-100, MEDIUM for 45-74, LOW for 0-44), grade_reason, outreach_language (use {lang} unless evidence suggests another language), outreach_dm, outreach_email_subject, outreach_email_body, outreach_whatsapp. Write all four messages in outreach_language; keep first contact polite and concise, personalize only with verified info, ask permission to share tailored ideas, include a brief opt-out, and do not imply prior contact or send anything automatically. Do NOT add a sender introduction, agency name, or portfolio URL because the application will insert them consistently after generation. Company facts: {json.dumps(facts,ensure_ascii=False)}"""
+    offer_context={"matched_service":offer["title"],"service_description":offer["service_en"],"potential_benefit":offer["benefit_en"],"relevant_illustrative_example_url":offer["url"],"agency_homepage":AGENCY_PORTFOLIO_URL}
+    prompt=f"""You are a careful B2B outreach researcher for AGA-Ai Growth Agency. The agency website at {AGENCY_PORTFOLIO_URL} showcases AI and workflow services including: WhatsApp customer chat assistants that answer common questions and log orders; FAQ and order-status bots; Instagram comment/DM automation; B2B lead discovery and prospect fit scoring; personalized email campaign preparation; AI content calendars, captions and scripts; WhatsApp reservation recording and reminders; sales data reporting to Google Sheets; public-source competitor monitoring; polite scheduled payment reminders; and daily operational summaries.
+Analyze ONLY the supplied public company evidence; never invent business needs, budget, buying intent, results, or facts. If evidence is thin, say so. Use the provided portfolio match as a relevant OFFER TO EXPLORE, not as proof that the company has that problem. JSON only with: need_audit (2-4 sentences, clearly distinguish observed facts from a possible opportunity), recommended_service (1-2 specific services that match the selected portfolio example), prospect_score (integer 0-100; evidence specificity 35%, fit 25%, public contact usability 25%, data quality 15%), prospect_grade (RECOMMENDED for 75-100, MEDIUM for 45-74, LOW for 0-44), grade_reason, outreach_language (use {lang} unless evidence supports another language), outreach_dm, outreach_email_subject, outreach_email_body, outreach_whatsapp. Write all four messages in outreach_language; keep them personal to this sector and specific to the selected portfolio solution, briefly explain what workflow the agency can help configure, and ask permission to share a tailored idea. Do not claim the example is a real client result: portfolio project pages explicitly say examples are illustrative. Do not make up company problems, metrics, client results or prior contact. Keep the contact respectful and include a brief opt-out. Do NOT add sender introduction, agency name, homepage URL, or project link inside the model draft; the application will append the staff intro and both links consistently. Company facts: {json.dumps(facts,ensure_ascii=False)}. Best-fit portfolio offer: {json.dumps(offer_context,ensure_ascii=False)}"""
     try:
         d=gemini(prompt,key,model); score=max(0,min(100,int(float(d.get("prospect_score",45)))))
         grade="RECOMMENDED" if score>=75 else ("MEDIUM" if score>=45 else "LOW")
@@ -435,7 +448,7 @@ def analyze(p,key,model):
         p["prospect_score"]=score; p["prospect_grade"]=grade
         if not p["need_audit"] or not p["outreach_dm"]: raise ValueError("Required AI fields missing")
         for key in ("outreach_dm","outreach_whatsapp","outreach_email_body"):
-            p[key]=add_agency_context(p.get(key,""),p.get("outreach_language") or lang)
+            p[key]=add_agency_context(p.get(key,""),p.get("outreach_language") or lang,p.get("relevant_portfolio_url",""),p.get("portfolio_example_title",""))
     except Exception as e:
         L.warning("AI fallback for %s: %s",p["company_name"],s(e,180)); template_fallback(p,str(e))
 def sheet(url_,token,payload):
