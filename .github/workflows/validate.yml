@@ -7,6 +7,7 @@ on:
       - "apps-script/**"
       - ".github/workflows/**"
       - "requirements.txt"
+      - "tests/**"
   workflow_dispatch:
 
 permissions:
@@ -20,8 +21,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
       - name: Compile Python
-        run: python -m py_compile src/runner.py
+        run: python -m py_compile src/runner.py tests/test_outreach.py
+      - name: Test portfolio matching and outreach drafts
+        run: python -m unittest discover -s tests -v
       - name: Check required files
         run: |
           test -s README.md
