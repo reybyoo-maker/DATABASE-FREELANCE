@@ -104,11 +104,11 @@ def add_agency_context(message, language):
     # If the model did not use the required placeholder AND agency name, add the official intro.
     if "[nama kamu]" not in message.lower() or AGENCY_NAME.lower() not in message.lower():
         # Keep the company's greeting first, then introduce the staff member naturally.
-        greeting_end = re.search(r"[.!?。！？؟]\\s*", message[:220])
+        greeting_end = re.search(r"[.!?。！？؟]\s*", message[:220])
         if greeting_end:
             message = message[:greeting_end.end()].rstrip() + " " + intro + (" " + message[greeting_end.end():].lstrip() if message[greeting_end.end():].strip() else "")
         else:
-            message = intro + ("\\n\\n" + message if message else "")
+            message = intro + ("\n\n" + message if message else "")
     if AGENCY_PORTFOLIO_URL not in message:
         label = PORTFOLIO_LABEL.get(language, "Portfolio")
         message = message.rstrip() + f"\n\n{label}: {AGENCY_PORTFOLIO_URL}"
