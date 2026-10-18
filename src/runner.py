@@ -190,7 +190,9 @@ def choose_portfolio_offer(p):
     socials = any(p.get(k) for k in ("instagram", "facebook", "tiktok"))
     def has(*words):
         return any(word in blob or word in industry for word in words)
-    if has("fashion", "clothing", "apparel", "garment", "skincare", "cosmetic", "beauty brand", "boutique", "jewelry", "makeup", "fashion store"):
+    if has("skincare", "cosmetic product", "cosmetics brand", "makeup store", "beauty product", "beauty e-commerce"):
+        key = "customer_chat"
+    elif has("fashion", "clothing", "apparel", "garment", "boutique", "jewelry", "fashion store", "fashion brand"):
         key = "brand_content"
     elif has("freelancer", "freelance", "invoice", "payment reminder", "billing", "accounting", "bookkeeping"):
         key = "payment_reminders"
