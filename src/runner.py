@@ -112,7 +112,7 @@ def discover_web(key,wanted):
     out={}
     if not key: L.warning("TAVILY_API_KEY missing; only OSM discovery is available"); return []
     dt=datetime.now(TZ); start=(dt.timetuple().tm_yday*5+dt.hour//6*7)%len(REGIONS)
-    for i in range(min(12,max(4,(wanted+9)//10))):
+    for i in range(min(12,max(4,(wanted+7)//8))):
         city,country=REGIONS[(start+i)%len(REGIONS)]; sector=SECTORS[(dt.timetuple().tm_yday*3+(dt.hour//6)*5+i*7)%len(SECTORS)]
         domain,platform=DOMAINS[(i+dt.hour//6)%len(DOMAINS)]
         query=f'site:{domain} "{sector}" "{city}" "{country}" business company official contact'
