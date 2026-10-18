@@ -95,11 +95,11 @@ def phone(text):
     for x in re.findall(r"\+?\d[\d ()-]{7,}\d",str(text or "")):
         if 8<=len(re.sub(r"\D","",x))<=15: return x
     return ""
-def pid(name,country,key): return hashlib.sha256(f"{name.lower().strip()}|{country.lower()}|{key.lower().split('?')[0].rstrip('/')}".encode()).hexdigest()[:18]
+def pid(name,country,key): return hashlib.sha256(f"{name.lower().strip()}|{country.lower().strip()}|{key.lower().strip()}".encode()).hexdigest()[:18]
 def make_record(name,country,city,industry,website,wa,phone_v,email,soc,source,source_name,evidence):
     if not wa and not any(soc.values()): return None
-    key=website or next((x for x in soc.values() if x),wa)
-    return {"prospect_id":pid(name,country,key),"company_name":name,"country":country,"city":city,"industry":industry,
+    identity_scope=f"{city}|{industry}"
+    return {"prospect_id":pid(name,country,identity_scope),"company_name":name,"country":country,"city":city,"industry":industry,
       "website":website,"whatsapp_url":wa,"public_phone":phone_v,"public_email":email,**soc,
       "source_url":source,"source_name":source_name,"evidence":s(evidence,1200),"discovered_at_utc":now(),
       "outreach_language":"","need_audit":"","recommended_service":"","prospect_score":0,"prospect_grade":"MEDIUM",
