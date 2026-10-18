@@ -1,0 +1,29 @@
+name: Validate Automation
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - "apps-script/**"
+      - ".github/workflows/**"
+      - "requirements.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile Python
+        run: python -m py_compile src/runner.py
+      - name: Check required files
+        run: |
+          test -s README.md
+          test -s apps-script/Code.gs
+          test -s requirements.txt
