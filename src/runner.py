@@ -56,6 +56,59 @@ LANGUAGE = {
 
 }
 DEFAULT = ("English","Hello {name} team, I came across your public business profile while researching companies in {city}, {country}. There may be an opportunity to improve {service} and help {benefit}. Would you be open to a few tailored ideas? If this is not relevant, please let me know and I will not follow up.")
+
+AGENCY_PORTFOLIO_URL = "https://agencyai.reybyoo.workers.dev/"
+AGENCY_NAME = "AGA-Ai Growth Agency"
+
+# The sender is a member of the marketing team; [nama kamu] must be replaced manually before sending.
+OUTREACH_INTRO = {
+    "Indonesian": "Perkenalkan, saya [nama kamu] dari AGA-Ai Growth Agency.",
+    "Malay": "Salam, saya [nama kamu] daripada AGA-Ai Growth Agency.",
+    "English": "Hi, I'm [nama kamu] from AGA-Ai Growth Agency.",
+    "Japanese": "はじめまして。AGA-Ai Growth Agencyの[nama kamu]と申します。",
+    "Korean": "안녕하세요. AGA-Ai Growth Agency의 [nama kamu]입니다.",
+    "Chinese": "您好，我是 AGA-Ai Growth Agency 的[nama kamu]。",
+    "Thai": "สวัสดีครับ/ค่ะ ผม/ดิฉัน [nama kamu] จาก AGA-Ai Growth Agency",
+    "Vietnamese": "Xin chào, tôi là [nama kamu] từ AGA-Ai Growth Agency.",
+    "German": "Guten Tag, ich bin [nama kamu] von AGA-Ai Growth Agency.",
+    "French": "Bonjour, je suis [nama kamu] de AGA-Ai Growth Agency.",
+    "Spanish": "Hola, soy [nama kamu] de AGA-Ai Growth Agency.",
+    "Portuguese": "Olá, sou [nama kamu] da AGA-Ai Growth Agency.",
+    "Italian": "Buongiorno, sono [nama kamu] di AGA-Ai Growth Agency.",
+    "Dutch": "Hallo, ik ben [nama kamu] van AGA-Ai Growth Agency.",
+    "Arabic": "مرحباً، أنا [nama kamu] من AGA-Ai Growth Agency.",
+    "Turkish": "Merhaba, ben AGA-Ai Growth Agency'den [nama kamu].",
+}
+PORTFOLIO_LABEL = {
+    "Indonesian": "Portofolio kami",
+    "Malay": "Portfolio kami",
+    "Japanese": "ポートフォリオ",
+    "Korean": "포트폴리오",
+    "Chinese": "作品集 / Portfolio",
+    "Thai": "ผลงาน / Portfolio",
+    "Vietnamese": "Hồ sơ năng lực / Portfolio",
+    "German": "Portfolio",
+    "French": "Portfolio",
+    "Spanish": "Portafolio",
+    "Portuguese": "Portfólio",
+    "Italian": "Portfolio",
+    "Dutch": "Portfolio",
+    "Arabic": "نماذج أعمالنا / Portfolio",
+    "Turkish": "Portföy",
+}
+
+def add_agency_context(message, language):
+    """Ensure every copy-ready outreach message has the staff placeholder and agency portfolio."""
+    message = s(message, 3000).strip()
+    intro = OUTREACH_INTRO.get(language, OUTREACH_INTRO["English"])
+    # If the model did not use the required placeholder AND agency name, add the official intro.
+    if "[nama kamu]" not in message.lower() or AGENCY_NAME.lower() not in message.lower():
+        message = intro + ("\n\n" + message if message else "")
+    if AGENCY_PORTFOLIO_URL not in message:
+        label = PORTFOLIO_LABEL.get(language, "Portfolio")
+        message = message.rstrip() + f"\n\n{label}: {AGENCY_PORTFOLIO_URL}"
+    return message
+
 OSM = [
 ("Jakarta","Indonesia",-6.2088,106.8456),("Bandung","Indonesia",-6.9175,107.6191),("Surabaya","Indonesia",-7.2575,112.7521),("Yogyakarta","Indonesia",-7.7956,110.3695),
 ("Kuala Lumpur","Malaysia",3.139,101.6869),("Singapore","Singapore",1.3521,103.8198),("Bangkok","Thailand",13.7563,100.5018),("Manila","Philippines",14.5995,120.9842),
@@ -205,16 +258,20 @@ def template_fallback(p,err):
     score=38+bool(p.get("whatsapp_url"))*8+bool(p.get("public_email"))*6+bool(p.get("website"))*6+sum(bool(p.get(k)) for k in ("instagram","facebook","linkedin","tiktok"))*3
     score=min(74,score)
     p.update(outreach_language=lang,need_audit="AI analysis was unavailable, so a company-specific need has not been verified. Check the source profile and confirm a concrete opportunity before contacting. Fallback reason: "+s(err,120),recommended_service="Candidate services to validate: social media planning, customer inquiry automation, and lead tracking.",prospect_score=score,prospect_grade="MEDIUM" if score>=45 else "LOW",grade_reason="Fallback rating based on public contact availability only. Not evidence of buying intent; manual review required.",outreach_dm=draft,outreach_whatsapp=draft,outreach_email_subject=f"Ideas for {p['company_name']}",outreach_email_body=draft,data_quality=p.get("data_quality","")+"; AI unavailable; fallback analysis")
+    for key in ("outreach_dm","outreach_whatsapp","outreach_email_body"):
+        p[key]=add_agency_context(p.get(key,""),p.get("outreach_language",lang))
 def analyze(p,key,model):
     lang,_=LANGUAGE.get(p["country"],DEFAULT)
     facts={k:p.get(k,"") for k in ("company_name","country","city","industry","website","whatsapp_url","public_email","public_phone","instagram","facebook","linkedin","tiktok","other_social","source_url","source_name","evidence")}
-    prompt=f"""You are a cautious B2B prospect researcher for an AI automation/digital services agency. Analyze ONLY supplied public evidence; never invent business needs, budget, buying intent, results, or facts. If evidence is thin, say that. JSON only with: need_audit (2-4 sentences, distinguish observations/hypotheses), recommended_service (1-3 specific and plausible services, not a confirmed need), prospect_score (integer 0-100; evidence specificity 35%, fit 25%, public contact usability 25%, data quality 15%), prospect_grade (RECOMMENDED for 75-100, MEDIUM for 45-74, LOW for 0-44), grade_reason, outreach_language (use {lang} unless evidence suggests another language), outreach_dm, outreach_email_subject, outreach_email_body, outreach_whatsapp. Write all four messages in outreach_language; keep first contact polite and concise, personalize only with verified info, ask permission to share tailored ideas, include a brief opt-out, and do not imply prior contact or send anything automatically. Company facts: {json.dumps(facts,ensure_ascii=False)}"""
+    prompt=f"""You are a cautious B2B prospect researcher for an AI automation/digital services agency. Analyze ONLY supplied public evidence; never invent business needs, budget, buying intent, results, or facts. If evidence is thin, say that. JSON only with: need_audit (2-4 sentences, distinguish observations/hypotheses), recommended_service (1-3 specific and plausible services, not a confirmed need), prospect_score (integer 0-100; evidence specificity 35%, fit 25%, public contact usability 25%, data quality 15%), prospect_grade (RECOMMENDED for 75-100, MEDIUM for 45-74, LOW for 0-44), grade_reason, outreach_language (use {lang} unless evidence suggests another language), outreach_dm, outreach_email_subject, outreach_email_body, outreach_whatsapp. Write all four messages in outreach_language; keep first contact polite and concise, personalize only with verified info, ask permission to share tailored ideas, include a brief opt-out, and do not imply prior contact or send anything automatically. Do NOT add a sender introduction, agency name, or portfolio URL because the application will insert them consistently after generation. Company facts: {json.dumps(facts,ensure_ascii=False)}"""
     try:
         d=gemini(prompt,key,model); score=max(0,min(100,int(float(d.get("prospect_score",45)))))
         grade="RECOMMENDED" if score>=75 else ("MEDIUM" if score>=45 else "LOW")
         for k in ("need_audit","recommended_service","grade_reason","outreach_dm","outreach_email_subject","outreach_email_body","outreach_whatsapp","outreach_language"): p[k]=s(d.get(k),2500)
         p["prospect_score"]=score; p["prospect_grade"]=grade
         if not p["need_audit"] or not p["outreach_dm"]: raise ValueError("Required AI fields missing")
+        for key in ("outreach_dm","outreach_whatsapp","outreach_email_body"):
+            p[key]=add_agency_context(p.get(key,""),p.get("outreach_language") or lang)
     except Exception as e:
         L.warning("AI fallback for %s: %s",p["company_name"],s(e,180)); template_fallback(p,str(e))
 def sheet(url_,token,payload):
