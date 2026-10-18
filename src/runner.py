@@ -429,7 +429,20 @@ def template_fallback(p,err):
     else:
         service,benefit=LOCALIZED_FALLBACK.get(lang,LOCALIZED_FALLBACK["English"])
         recommended=offer["service_en"]
-    draft=tmpl.format(name=p["company_name"],city=p["city"],country=p["country"],service=service,benefit=benefit)
+    if lang=="Indonesian":
+        draft=(f"Halo tim {p['company_name']}, perkenalkan saya [nama kamu] dari AGA-Ai Growth Agency. "
+               f"Saya menemukan profil publik {p['company_name']} di {p['city']}, {p['country']}. "
+               f"Salah satu ide yang mungkin relevan adalah {service}. Alur ini dapat membantu {benefit}. "
+               "Contoh di portofolio kami adalah ilustrasi cara kerja, bukan klaim hasil dari klien nyata. "
+               "Apakah saya boleh membagikan ide yang disesuaikan untuk bisnis Anda? Jika tidak relevan, beri tahu saya dan saya tidak akan menindaklanjuti.")
+    elif lang=="English":
+        draft=(f"Hello {p['company_name']} team, I'm [nama kamu] from AGA-Ai Growth Agency. "
+               f"I found your public business profile in {p['city']}, {p['country']}. "
+               f"One idea that may be relevant is {service}. This kind of workflow can help {benefit}. "
+               "The portfolio page is an illustrative example, not a claim of results for your business. "
+               "Would it be useful if I shared a few ideas tailored to your team? If this is not relevant, let me know and I will not follow up.")
+    else:
+        draft=tmpl.format(name=p["company_name"],city=p["city"],country=p["country"],service=service,benefit=benefit)
     # Contact-channel availability alone is not enough to assign the top tier.
     score=38+bool(p.get("whatsapp_url"))*8+bool(p.get("public_email"))*6+bool(p.get("website"))*6+sum(bool(p.get(k)) for k in ("instagram","facebook","linkedin","tiktok"))*3
     score=min(74,score)
