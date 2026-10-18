@@ -176,13 +176,22 @@ def discover_osm(wanted):
         if len(out)>=min(wanted*2,150): break
     return list(out.values())
 def gemini(prompt,key,model):
-    r=requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",params={"key":key},
-       json={"contents":[{"role":"user","parts":[{"text":prompt}]}],"generationConfig":{"temperature":0.25,"responseMimeType":"application/json"}},
-       headers={"User-Agent":UA},timeout=45)
-    if r.status_code==404: raise RuntimeError(f"Gemini model {model} not found; configure GEMINI_MODEL")
-    if r.status_code==429: raise RuntimeError("Gemini API quota/rate limit hit")
-    r.raise_for_status(); parts=r.json().get("candidates",[{}])[0].get("content",{}).get("parts",[])
-    text="".join(x.get("text","") for x in parts)
+    # Never include request URLs or exception strings in logs: the URL contains the API key.
+    try:
+        r=requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",params={"key":key},
+           json={"contents":[{"role":"user","parts":[{"text":prompt}]}],"generationConfig":{"temperature":0.25,"responseMimeType":"application/json"}},
+           headers={"User-Agent":UA},timeout=(5,12))
+    except requests.RequestException as exc:
+        raise RuntimeError(f"Gemini transport failure ({type(exc).__name__})") from None
+    if r.status_code==404: raise RuntimeError(f"Gemini model {model} was not found; configure GEMINI_MODEL")
+    if r.status_code==429: raise RuntimeError("Gemini API quota/rate limit hit (HTTP 429)")
+    if not 200 <= r.status_code < 300:
+        raise RuntimeError(f"Gemini API returned HTTP {r.status_code}")
+    try:
+        parts=r.json().get("candidates",[{}])[0].get("content",{}).get("parts",[])
+        text="".join(x.get("text","") for x in parts)
+    except (ValueError,TypeError,KeyError,IndexError) as exc:
+        raise RuntimeError(f"Gemini response parse failed ({type(exc).__name__})") from None
     text=re.sub(r"^\x60{3}(?:json)?\s*|\s*\x60{3}$","",text.strip(),flags=re.I)
     a,b=text.find("{"),text.rfind("}")
     if a<0 or b<=a: raise RuntimeError("Gemini response was not JSON")
@@ -192,8 +201,10 @@ def template_fallback(p,err):
     service="social media planning, lead tracking, and customer inquiry automation"
     benefit="save response time and follow up with interested customers more consistently"
     draft=tmpl.format(name=p["company_name"],city=p["city"],country=p["country"],service=service,benefit=benefit)
-    score=45+bool(p.get("whatsapp_url"))*12+bool(p.get("public_email"))*8+bool(p.get("website"))*8+sum(bool(p.get(k)) for k in ("instagram","facebook","linkedin","tiktok"))*3
-    score=min(78,score); p.update(outreach_language=lang,need_audit="Source evidence is too limited for a confident company-specific diagnosis. Verify the business profile and identify a real service gap before contacting. AI fallback: "+s(err,250),recommended_service="Possible services to validate: social media planning, inquiry automation, and lead tracking.",prospect_score=score,prospect_grade="RECOMMENDED" if score>=75 else ("MEDIUM" if score>=45 else "LOW"),grade_reason="Fallback score based on public channels, not evidence of buying intent; manual review required.",outreach_dm=draft,outreach_whatsapp=draft,outreach_email_subject=f"Ideas for {p['company_name']}",outreach_email_body=draft,data_quality=p.get("data_quality","")+"; fallback analysis")
+    # Contact-channel availability alone is not enough to assign the top tier.
+    score=38+bool(p.get("whatsapp_url"))*8+bool(p.get("public_email"))*6+bool(p.get("website"))*6+sum(bool(p.get(k)) for k in ("instagram","facebook","linkedin","tiktok"))*3
+    score=min(74,score)
+    p.update(outreach_language=lang,need_audit="AI analysis was unavailable, so a company-specific need has not been verified. Check the source profile and confirm a concrete opportunity before contacting. Fallback reason: "+s(err,120),recommended_service="Candidate services to validate: social media planning, customer inquiry automation, and lead tracking.",prospect_score=score,prospect_grade="MEDIUM" if score>=45 else "LOW",grade_reason="Fallback rating based on public contact availability only. Not evidence of buying intent; manual review required.",outreach_dm=draft,outreach_whatsapp=draft,outreach_email_subject=f"Ideas for {p['company_name']}",outreach_email_body=draft,data_quality=p.get("data_quality","")+"; AI unavailable; fallback analysis")
 def analyze(p,key,model):
     lang,_=LANGUAGE.get(p["country"],DEFAULT)
     facts={k:p.get(k,"") for k in ("company_name","country","city","industry","website","whatsapp_url","public_email","public_phone","instagram","facebook","linkedin","tiktok","other_social","source_url","source_name","evidence")}
@@ -232,20 +243,37 @@ def main():
         for p in batch: pool.setdefault(p["prospect_id"],p)
     rows=list(pool.values())
     rows.sort(key=lambda p:(bool(p["whatsapp_url"]),bool(p["public_email"]),sum(bool(p[k]) for k in ("instagram","facebook","linkedin","tiktok","other_social")),bool(p["website"])),reverse=True)
-    if not args.dry_run: rows=rows[:min(200,(target-daily)*2)]
-    L.info("Qualified distinct prospects with a public WhatsApp/social profile: %d",len(rows))
-    for i,p in enumerate(rows):
-        analyze(p,gk,model)
-        if i<len(rows)-1: time.sleep(.2)
     if args.dry_run:
-        print(json.dumps(rows[:20],ensure_ascii=False,indent=2)); L.info("Dry run only; no rows uploaded"); return 0
-    for start in range(0,len(rows),25):
+        # Keep dry runs bounded; their output is a sample, not an upload.
+        rows=rows[:20]
+    else:
+        # Cap each run so a temporary AI outage cannot prevent all Sheet exports.
+        # Four scheduled runs/day can process up to 120 rows if fresh unique candidates exist.
+        rows=rows[:min(30,max(1,(target-daily)*2))]
+    L.info("Qualified distinct prospects discovered: %d; selected for this run: %d",len(pool),len(rows))
+    if args.dry_run:
+        for p in rows: analyze(p,gk,model)
+        print(json.dumps(rows,ensure_ascii=False,indent=2))
+        L.info("Dry run only; no rows uploaded")
+        return 0
+    inserted=0
+    # Analyze and write in small batches. Completed batches remain in Sheets if a later batch fails.
+    for start in range(0,len(rows),10):
+        batch=rows[start:start+10]
+        for p in batch:
+            analyze(p,gk,model)
         try:
-            result=sheet(wh,token,{"action":"append","prospects":rows[start:start+25],"run_id":now()})
+            result=sheet(wh,token,{"action":"append","prospects":batch,"run_id":now()})
+            inserted += int(result.get("inserted",0))
             daily=int(result.get("daily_count",daily+int(result.get("inserted",0))))
-            L.info("Inserted %s; daily count %d/%d",result.get("inserted",0),daily,target)
-            if daily>=target: break
-        except Exception as e: L.error("Google Sheets append failed: %s",s(e,300)); return 4
-    if daily<target: L.warning("TARGET GAP: %d records short today; next scheduled run will continue.",target-daily)
+            L.info("Sheets batch %d/%d: inserted=%s; daily total=%d/%d",start//10+1,(len(rows)+9)//10,result.get("inserted",0),daily,target)
+            if daily>=target:
+                L.info("Daily target met")
+                break
+        except Exception as e:
+            L.error("Google Sheets append failed (%s)",type(e).__name__)
+            return 4
+    if daily<target: L.warning("TARGET GAP: %d records short today. Next scheduled run will continue.",target-daily)
+    L.info("Run finished: inserted=%d this run; daily total=%d/%d.",inserted,daily,target)
     return 0
 if __name__=="__main__": sys.exit(main())
