@@ -178,9 +178,9 @@ def discover_osm(wanted):
 def gemini(prompt,key,model):
     # Never include request URLs or exception strings in logs: the URL contains the API key.
     try:
-        r=requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",params={"key":key},
+        r=requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
            json={"contents":[{"role":"user","parts":[{"text":prompt}]}],"generationConfig":{"temperature":0.25,"responseMimeType":"application/json"}},
-           headers={"User-Agent":UA},timeout=(5,12))
+           headers={"User-Agent":UA,"x-goog-api-key":key},timeout=(5,12))
     except requests.RequestException as exc:
         raise RuntimeError(f"Gemini transport failure ({type(exc).__name__})") from None
     if r.status_code==404: raise RuntimeError(f"Gemini model {model} was not found; configure GEMINI_MODEL")
