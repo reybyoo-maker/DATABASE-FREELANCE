@@ -24,7 +24,7 @@ Go to Settings → Secrets and variables → Actions → New repository secret a
 | WEBHOOK_TOKEN | Long random shared secret; must match Apps Script property WEBHOOK_TOKEN |
 
 Optional repository variable:
-- GEMINI_MODEL: model ID to use (default gemini-2.5-flash; set it to a currently enabled model in your AI Studio project).
+- GEMINI_MODEL: model ID to use (default gemini-3.5-flash-lite; set it to a currently enabled model in your AI Studio project).
 - DAILY_TARGET: desired qualified new records per Jakarta day (default 100).
 
 Never put API keys in source code or commit them. The workflow does not send outreach messages; it only prepares drafts for manual review.
