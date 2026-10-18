@@ -40,6 +40,18 @@ Never put API keys in source code or commit them. The workflow does not send out
 
 The sheet script creates a Prospects tab and a Runs tab automatically. The Outreach Status column is manual; records are not messaged automatically.
 
+## Website-matched outreach
+
+Outreach is matched to a relevant example on the agency portfolio at https://agencyai.reybyoo.workers.dev/. The selected example may include B2B lead discovery, customer chat/FAQ automation, Instagram DM replies, content planning, email campaign preparation, restaurant reservations, sales reporting, competitor monitoring, payment reminders, or daily reports.
+
+Each copy-ready DM, WhatsApp message, and email body includes:
+- A sender introduction using the placeholder `[nama kamu]` from **AGA-Ai Growth Agency**.
+- The main portfolio link and a sector-relevant project example link.
+- A short, respectful pitch about a possible fit, written in the prospect's language when AI analysis is available.
+- No claims that illustrative portfolio pages are real client case studies or proven results.
+
+The `Prospects` tab also records `Portfolio Service Match` and `Relevant Portfolio Example URL`. If the Google Apps Script was already copied to Google from an earlier version, update it with the latest `apps-script/Code.gs` and deploy a new version for the new columns to appear. Updating the file in GitHub alone does not automatically update a separately deployed Apps Script.
+
 ## Scoring rubric
 
 - RECOMMENDED: 75–100 — clear, evidence-supported opportunity plus usable public contact.
