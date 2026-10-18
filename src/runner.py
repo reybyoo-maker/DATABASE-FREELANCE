@@ -215,7 +215,7 @@ def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--dry-run",action="store_true"); args=ap.parse_args()
     tk=os.getenv("TAVILY_API_KEY","").strip(); gk=os.getenv("GEMINI_API_KEY","").strip()
     wh=os.getenv("SHEET_WEBHOOK_URL","").strip(); token=os.getenv("WEBHOOK_TOKEN","").strip()
-    model=os.getenv("GEMINI_MODEL","gemini-2.5-flash").strip()
+    model=os.getenv("GEMINI_MODEL","gemini-3.5-flash-lite").strip()
     try: target=max(1,min(500,int(os.getenv("DAILY_TARGET","100"))))
     except ValueError: target=100
     if not gk: L.error("GEMINI_API_KEY is required"); return 2
